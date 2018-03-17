@@ -29,10 +29,25 @@ class Config(object):
 
 class UserData(object):
     """用户类，计算工资并写入指定文件"""
-    def __init__(self,userdatafile):
+    def __init__(self,userdatafile,cfg_tmp):
         self.usr_file = userdatafile
         self.userdata = {}
-            
+        #self.cfg_obj 用来引用配置文件的对象
+        self.cfg_obj = cfg_tmp
+        try:
+            self.low = float(self.cfg_obj.get_config('JiShuL'))
+            self.high = float(self.cfg_obj.get_config('JiShuH'))
+            self.x_yl = float(self.cfg_obj.get_config('YangLao'))
+            self.x_shiye = float(self.cfg_obj.get_config('ShiYe'))
+            self.x_gs = float(self.cfg_obj.get_config('GongShang'))
+            self.x_shengyu = float(self.cfg_obj.get_config('ShengYu'))
+            self.x_gjj = float(self.cfg_obj.get_config('GongJiJin')) 
+            self.x_sb = (self.x_yl+self.x_shiye+self.x_gs
+                    +self.x_shengyu+self.x_gjj)
+            print(self.x_sb)
+            #print(type(self.cfg_tmp.get_config('JiShuL')))
+        except TypeError:
+            print("type error")        
     #计算税后工资 
     def calculator(self):
         #print("-"*10)
@@ -48,9 +63,62 @@ class UserData(object):
                 if f_line != [""]:
                     #print(f_line)
                     self.userdata[f_line[0]] = f_line[1]
-        print(self.userdata)
+        #读取到的文件格式 －－ 工号：税前工资
+        #print(self.userdata)
+        self.cal()
+        #计算社保金额，个税金额，税后工资
+    def cal(self):
+        sb_dict = {}
+        tax_dict = {}
+        shgz_dict = {}
+        for p in self.userdata.keys():
+            #计算五险一金的基数
+            try:
+                self.userdata[p] = float(self.userdata[p])
+                if self.userdata[p] < self.low:
+                    j_shu = self.low
+                elif self.userdata[p] > self.high:
+                    j_shu = self.high
+                else:
+                    j_shu = self.userdata[p] 
+            except:
+                print("type error2")
+                
+            sb = j_shu * self.x_sb
+            t = self.userdata[p] - sb - 3500
+            if t < 0:
+                tax = 0
+            elif t<1500:
+                tax = t * 0.03
+            elif t<4500:
+                tax = t * 0.1 - 105
+            elif t<9000:
+                tax = t * 0.2 - 555
+            elif t<35000:
+                tax = t * 0.25 - 1055
+            elif t<55000:
+                tax = t * 0.3 - 2755
+            elif t<80000: 
+                tax = t * 0.35 - 5505
+            else:
+                tax = t * 0.45 -13505
+            
+            sb_dict[p] = format(sb,'.2f')
+            tax_dict[p] = format(tax,'.2f')
+            mon = self.userdata[p] - tax - sb
+            shgz_dict[p] = format(mon,'.2f')
+        print(sb_dict)
+        print("-"*10)
+        print(tax_dict)
+        print('-'*10)
+        print(shgz_dict)
+    #    print("-----*------------")
+
+
+
     #将计算结果写入指定文件
     def dumptofile(self,outputfile):
+        #存储格式：工号，税前工资，社保金额，个税金额，税后工资
         pass	
 
 
@@ -103,8 +171,8 @@ def main():
 #???|óD?í?ó??2??a?ao????óé??a????3ìDò??óDê?3?
 if __name__=='__main__':
 #    main()
-   # con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
+    con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
    # con.get_config("JiShuL")
 
-    u = UserData("/home/shiyanlou/syl_challenge_1/user.csv")
+    u = UserData("/home/shiyanlou/syl_challenge_1/user.csv",con)
     u.calculator()
