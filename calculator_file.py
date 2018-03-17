@@ -104,7 +104,8 @@ class UserData(object):
                 tax = t * 0.35 - 5505
             else:
                 tax = t * 0.45 -13505
-            
+            # 将数据修改为2位小数的数字形式字符串
+            # 并存入列表self.xx_list            
             sb_dict[p] = format(sb,'.2f')
             tax_dict[p] = format(tax,'.2f')
             mon = self.userdata[p] - tax - sb
@@ -136,59 +137,30 @@ class UserData(object):
                 file.write("\n")
         	
 
-def cal(**em_dict):
-    tax_dict = {}
-    for p in em_dict.keys():
-        t = em_dict[p]-em_dict[p]*0.165 - 3500
-        if t < 0:
-            tax = 0
-        elif t<1500:
-            tax = t * 0.03
-        elif t<4500:
-            tax = t * 0.1 - 105
-        elif t<9000:
-            tax = t * 0.2 - 555
-        elif t<35000:
-            tax = t * 0.25 - 1055
-        elif t<55000:
-            tax = t * 0.3 - 2755
-        elif t<80000: 
-            tax = t * 0.35 - 5505
-        else:
-            tax = t * 0.45 -13505
-        
-        taxf = tax
-        mon = em_dict[p] - taxf - em_dict[p]*0.165
-        tax_dict[p] = format(mon,'.2f')
-#    print("-----*------------")
-    return tax_dict
 
 def main():
-#   print('----main----')
-    if len(sys.argv) < 2:
-        print("Parameter Error")
-    else:
-        em_list =sys.argv[1:]
-        em_dict = {}
-        try:
-            for em in em_list:
-                t = em.split(':',1)
-                em_dict[t[0]] =int(t[1]) 
-        except TypeError:
-            print('Parameter Error')
-        else:
-            m = cal(**em_dict)
-           # print(m)
-            for gh,gz in m.items():
-                print("%s:%s"%(gh,gz))
+    args = sys.argv[1:]
+    
+    index_c = args.index('-c')
+    cfg_file = args[index_c+1]
+
+    index_d = args.index('-d')
+    usr_file = args[index_d+1]
+    
+    index_o = args.index('-o')
+    gz_file = args[index_o+1]
+    
+    con = Config(cfg_file)
+    u = UserData(usr_file,con)
+    u.calculator()
+    u.dumptofile(gz_file)    
 				
-#???|óD?í?ó??2??a?ao????óé??a????3ìDò??óDê?3?
 if __name__=='__main__':
-#    main()
-    con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
+    main()
+#    con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
    # con.get_config("JiShuL")
 
-    u = UserData("/home/shiyanlou/syl_challenge_1/user.csv",con)
-    u.calculator()
-    u.dumptofile('/home/shiyanlou/syl_challenge_1/gongzi.csv')
+  #  u = UserData("/home/shiyanlou/syl_challenge_1/user.csv",con)
+ #   u.calculator()
+   # u.dumptofile('/home/shiyanlou/syl_challenge_1/gongzi.csv')
 
