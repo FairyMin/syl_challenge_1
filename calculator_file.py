@@ -10,31 +10,49 @@ class Config(object):
         self._config = {}
 
     # 获取配置文件的内容
-    def get_config(self):
+    def get_config(self,pzx):
         with open(self.cfg_file) as file:
             for line in file:
-                #去掉空格
-                s_line = line.strip()
-                #分割字符串
-                f_line = s_line.split("=",1)
-                #去掉空行
+                # 去掉空格
+                ss_line = line.replace(" ","")
+                s_line = ss_line.strip()
+                # 分割字符串
+                f_line = s_line.split("=",1) 
+                # 去掉空行
                 if f_line != [""]:
-                   # print(f_line)
+                #    print(f_line)
                     self._config[f_line[0]] = f_line[1]
-        print(self._config)            
+        # print(self._config)
+        # 返回对应的配置项            
+        return self._config[pzx]
+
 
 class UserData(object):
     """用户类，计算工资并写入指定文件"""
     def __init__(self,userdatafile):
-        pass
-    
+        self.usr_file = userdatafile
+        self.userdata = {}
+            
     #计算税后工资 
     def calculator(self):
-        pass
-
+        #print("-"*10)
+        with open(self.usr_file) as file:
+            for line in file:
+                #print(line)
+                # 去掉空格
+                ss_line = line.replace(" ","")
+                s_line = ss_line.strip()
+                # 分割字符串
+                f_line = s_line.split(",",1) 
+                # 去掉空行
+                if f_line != [""]:
+                    #print(f_line)
+                    self.userdata[f_line[0]] = f_line[1]
+        print(self.userdata)
     #将计算结果写入指定文件
     def dumptofile(self,outputfile):
         pass	
+
 
 def cal(**em_dict):
     tax_dict = {}
@@ -85,5 +103,8 @@ def main():
 #???|óD?í?ó??2??a?ao????óé??a????3ìDò??óDê?3?
 if __name__=='__main__':
 #    main()
-    con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
-    con.get_config()
+   # con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
+   # con.get_config("JiShuL")
+
+    u = UserData("/home/shiyanlou/syl_challenge_1/user.csv")
+    u.calculator()
