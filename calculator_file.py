@@ -34,16 +34,18 @@ class UserData(object):
         self.userdata = {}
         #self.cfg_obj 用来引用配置文件的对象
         self.cfg_obj = cfg_tmp
+        self.xx_list = []
         try:
             self.low = float(self.cfg_obj.get_config('JiShuL'))
             self.high = float(self.cfg_obj.get_config('JiShuH'))
             self.x_yl = float(self.cfg_obj.get_config('YangLao'))
+            self.x_yiliao = float(self.cfg_obj.get_config('YiLiao'))
             self.x_shiye = float(self.cfg_obj.get_config('ShiYe'))
             self.x_gs = float(self.cfg_obj.get_config('GongShang'))
             self.x_shengyu = float(self.cfg_obj.get_config('ShengYu'))
             self.x_gjj = float(self.cfg_obj.get_config('GongJiJin')) 
             self.x_sb = (self.x_yl+self.x_shiye+self.x_gs
-                    +self.x_shengyu+self.x_gjj)
+                    +self.x_shengyu+self.x_gjj+self.x_yiliao)
             print(self.x_sb)
             #print(type(self.cfg_tmp.get_config('JiShuL')))
         except TypeError:
@@ -107,20 +109,32 @@ class UserData(object):
             tax_dict[p] = format(tax,'.2f')
             mon = self.userdata[p] - tax - sb
             shgz_dict[p] = format(mon,'.2f')
-        print(sb_dict)
-        print("-"*10)
-        print(tax_dict)
-        print('-'*10)
-        print(shgz_dict)
-    #    print("-----*------------")
+            self.userdata[p] = format(self.userdata[p],'.0f') 
+            self.xx_list.append([p,self.userdata[p],sb_dict[p],tax_dict[p],
+                        shgz_dict[p]])
+
+            
+        #print(self.xx_list)
+        #print(sb_dict)
+        #print("-"*10)
+        #print(tax_dict)
+        #print('-'*10)
+        #print(shgz_dict)
+        #print("-----*------------")
 
 
 
     #将计算结果写入指定文件
     def dumptofile(self,outputfile):
         #存储格式：工号，税前工资，社保金额，个税金额，税后工资
-        pass	
-
+        with open(outputfile,'w') as file:
+            for item in self.xx_list:
+                for i in item:
+                    file.write(i)
+                    if item.index(i)<len(item)-1:
+                        file.write(",")
+                file.write("\n")
+        	
 
 def cal(**em_dict):
     tax_dict = {}
@@ -176,3 +190,5 @@ if __name__=='__main__':
 
     u = UserData("/home/shiyanlou/syl_challenge_1/user.csv",con)
     u.calculator()
+    u.dumptofile('/home/shiyanlou/syl_challenge_1/gongzi.csv')
+
