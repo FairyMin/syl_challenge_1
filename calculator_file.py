@@ -90,17 +90,17 @@ class UserData(object):
             t = self.userdata[p] - sb - 3500
             if t < 0:
                 tax = 0
-            elif t<1500:
+            elif t<=1500:
                 tax = t * 0.03
-            elif t<4500:
+            elif t<=4500:
                 tax = t * 0.1 - 105
-            elif t<9000:
+            elif t<=9000:
                 tax = t * 0.2 - 555
-            elif t<35000:
-                tax = t * 0.25 - 1055
-            elif t<55000:
+            elif t<=35000:
+                tax = t * 0.25 - 1005
+            elif t<=55000:
                 tax = t * 0.3 - 2755
-            elif t<80000: 
+            elif t<=80000: 
                 tax = t * 0.35 - 5505
             else:
                 tax = t * 0.45 -13505
