@@ -1,20 +1,38 @@
 #!/usr/bin/env python3
+#coding=utf-8
+
 import sys
 
 class Config(object):
+    """读取文件类"""
     def __init__(self,configfile):
-        pass
-    
+        self.cfg_file = configfile
+        self._config = {}
+
+    # 获取配置文件的内容
     def get_config(self):
-        pass
+        with open(self.cfg_file) as file:
+            for line in file:
+                #去掉空格
+                s_line = line.strip()
+                #分割字符串
+                f_line = s_line.split("=",1)
+                #去掉空行
+                if f_line != [""]:
+                   # print(f_line)
+                    self._config[f_line[0]] = f_line[1]
+        print(self._config)            
 
 class UserData(object):
+    """用户类，计算工资并写入指定文件"""
     def __init__(self,userdatafile):
         pass
-
+    
+    #计算税后工资 
     def calculator(self):
         pass
 
+    #将计算结果写入指定文件
     def dumptofile(self,outputfile):
         pass	
 
@@ -66,4 +84,6 @@ def main():
 				
 #???|óD?í?ó??2??a?ao????óé??a????3ìDò??óDê?3?
 if __name__=='__main__':
-    main()
+#    main()
+    con = Config("/home/shiyanlou/syl_challenge_1/test.cfg")
+    con.get_config()
