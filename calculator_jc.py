@@ -10,9 +10,10 @@ class Config(object):
     def __init__(self,configfile):
         self.cfg_file = configfile
         self._config = {}
+        self.get_config()
 
     # 获取配置文件的内容
-    def get_config(self,queue1):
+    def get_config(self):
         with open(self.cfg_file) as file:
             for line in file:
                 # 去掉空格
@@ -27,37 +28,39 @@ class Config(object):
         # print(self._config)
         # 返回对应的配置项            
         #return self._config[pzx]
-        queue1.put(self._config)
+        #queue1.put(self._config)
 
 class UserData(object):
     """用户类，计算工资并写入指定文件"""
-    def __init__(self,userdatafile):
+    def __init__(self,userdatafile,pzx):
         self.usr_file = userdatafile
+        self.info_dict = pzx._config
         #self.userdata = {}
+        #读取社保比例信息
+        try:
+            self.low = float(self.info_dict['JiShuL'])
+            self.high = float(self.info_dict['JiShuH'])
+            self.x_yl = float(self.info_dict['YangLao'])
+            self.x_yiliao = float(self.info_dict['YiLiao'])
+            self.x_shiye = float(self.info_dict['ShiYe'])
+            self.x_gs = float(self.info_dict['GongShang'])
+            self.x_shengyu = float(self.info_dict['ShengYu'])
+            self.x_gjj = float(self.info_dict['GongJiJin']) 
+            self.x_sb = (self.x_yl+self.x_shiye+self.x_gs
+                    +self.x_shengyu+self.x_gjj+self.x_yiliao)
+            #print(self.x_sb)
+            #print(type(self.cfg_tmp.get_config('JiShuL')))
+        except TypeError:
+            print("type error")        
         #self.cfg_obj 用来引用配置文件的对象
         #self.cfg_obj = cfg_tmp
         #self.xx_list = []
     #计算税后工资 
-    def get_info(self,queue1,queue2):
+    def get_info(self,queue2):
         #print("-"*10)
         userdata = {}
-        if ~queue1.empty():
-            info_dict = queue1.get()
-        try:
-            self.low = float(info_dict['JiShuL'])
-            self.high = float(info_dict['JiShuH'])
-            self.x_yl = float(info_dict['YangLao'])
-            self.x_yiliao = float(info_dict['YiLiao'])
-            self.x_shiye = float(info_dict['ShiYe'])
-            self.x_gs = float(info_dict['GongShang'])
-            self.x_shengyu = float(info_dict['ShengYu'])
-            self.x_gjj = float(info_dict['GongJiJin']) 
-            self.x_sb = (self.x_yl+self.x_shiye+self.x_gs
-                    +self.x_shengyu+self.x_gjj+self.x_yiliao)
-            print(self.x_sb)
-            #print(type(self.cfg_tmp.get_config('JiShuL')))
-        except TypeError:
-            print("type error")        
+        #if ~queue1.empty():
+        #info_dict = queue1.get()
  
         with open(self.usr_file) as file:
             for line in file:
@@ -94,38 +97,38 @@ class UserData(object):
                     j_shu = self.high
                 else:
                     j_shu = u_data[p] 
-            except:
+                sb = j_shu * self.x_sb
+                t = u_data[p] - sb - 3500
+                if t < 0:
+                    tax = 0
+                elif t<=1500:
+                    tax = t * 0.03
+                elif t<=4500:
+                    tax = t * 0.1 - 105
+                elif t<=9000:
+                    tax = t * 0.2 - 555
+                elif t<=35000:
+                    tax = t * 0.25 - 1005
+                elif t<=55000:
+                    tax = t * 0.3 - 2755
+                elif t<=80000: 
+                    tax = t * 0.35 - 5505
+                else:
+                    tax = t * 0.45 -13505
+                # 将数据修改为2位小数的数字形式字符串
+                # 并存入列表self.xx_list            
+                sb_dict[p] = format(sb,'.2f')
+                tax_dict[p] = format(tax,'.2f')
+                mon = u_data[p] - tax - sb
+                shgz_dict[p] = format(mon,'.2f')
+                u_data[p] = format(u_data[p],'.0f') 
+                xx_list.append([p,u_data[p],sb_dict[p],tax_dict[p],
+                            shgz_dict[p]])
+                queue3.put(xx_list)
+
+            except TypeError:
                 print("type error2")
                 
-            sb = j_shu * self.x_sb
-            t = u_data[p] - sb - 3500
-            if t < 0:
-                tax = 0
-            elif t<=1500:
-                tax = t * 0.03
-            elif t<=4500:
-                tax = t * 0.1 - 105
-            elif t<=9000:
-                tax = t * 0.2 - 555
-            elif t<=35000:
-                tax = t * 0.25 - 1005
-            elif t<=55000:
-                tax = t * 0.3 - 2755
-            elif t<=80000: 
-                tax = t * 0.35 - 5505
-            else:
-                tax = t * 0.45 -13505
-            # 将数据修改为2位小数的数字形式字符串
-            # 并存入列表self.xx_list            
-            sb_dict[p] = format(sb,'.2f')
-            tax_dict[p] = format(tax,'.2f')
-            mon = self.userdata[p] - tax - sb
-            shgz_dict[p] = format(mon,'.2f')
-            self.userdata[p] = format(self.userdata[p],'.0f') 
-            xx_list.append([p,self.userdata[p],sb_dict[p],tax_dict[p],
-                        shgz_dict[p]])
-        queue3.put(xx_list)
-
     #将计算结果写入指定文件
     def dumptofile(self,outputfile,queue3):
         if ~queue3.empty():
@@ -159,10 +162,9 @@ def main():
     queue3 = Queue()
 
     con = Config(cfg_file)
-    con.get_config(queue1)
-    u = UserData(usr_file)
+    u = UserData(usr_file,con)
 
-    p1 = Process(target=u.get_info,args=(queue1,queue2))
+    p1 = Process(target=u.get_info,args=(queue2,))
     p2 = Process(target=u.write_solution,args=(queue2,queue3))
     p3 = Process(target=u.dumptofile,args=(gz_file,queue3))
 
