@@ -13,7 +13,7 @@ class Config(object):
     def __init__(self,configfile,sb_city):
         self.cfg_file = configfile
         self._config = None
-        self.get_config(sb_city)
+        self.get_config(sb_city.upper())
 
     # 获取配置文件的内容
     def get_config(self,sb_city):
