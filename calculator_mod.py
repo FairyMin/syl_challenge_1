@@ -62,14 +62,15 @@ class UserData(object):
         #self.cfg_obj 用来引用配置文件的对象
         #self.cfg_obj = cfg_tmp
         #self.xx_list = []
-    #计算税后工资 
+
+    #读取用户信息 
     def get_info(self,queue2):
         #print("-"*10)
-        userdata = {}
+        userdata = {}       #存用户信息
         #if ~queue1.empty():
         #info_dict = queue1.get()
  
-        with open(self.usr_file) as file:
+        with open(self.usr_file,'r') as file:
             for line in file:
                 #print(line)
                 # 去掉空格
@@ -84,13 +85,13 @@ class UserData(object):
 
         #读取到的文件格式 －－ 工号：税前工资
         queue2.put(userdata)
-        #print(self.userdata)
+        #print('输入数据',userdata)
         #self.cal()
         #计算社保金额，个税金额，税后工资
     def write_solution(self,queue2,queue3):
-        sb_dict = {}
-        tax_dict = {}
-        shgz_dict = {}
+        sb_dict = {}    #存社保
+        tax_dict = {}   #存个税
+        shgz_dict = {}  #存税后工资
         if ~queue2.empty():
             u_data = queue2.get()
         xx_list = []
@@ -123,7 +124,7 @@ class UserData(object):
                 else:
                     tax = t * 0.45 -13505
                 # 将数据修改为2位小数的数字形式字符串
-                # 并存入列表self.xx_list            
+                # 并存入列表xx_list            
                 sb_dict[p] = format(sb,'.2f')
                 tax_dict[p] = format(tax,'.2f')
                 mon = u_data[p] - tax - sb
@@ -131,10 +132,10 @@ class UserData(object):
                 u_data[p] = format(u_data[p],'.0f') 
                 xx_list.append([p,u_data[p],sb_dict[p],tax_dict[p],
                             shgz_dict[p]])
-                queue3.put(xx_list)
-
             except TypeError:
                 print("type error2")
+        queue3.put(xx_list)
+        #print('计算结果',xx_list)
                 
     #将计算结果写入指定文件
     def dumptofile(self,outputfile,queue3):
@@ -188,7 +189,7 @@ def main():
 #    index_city = args.index('-C')
 #    sb_city = args[index_city+1]
     
-    queue1 = Queue()    
+#    queue1 = Queue()    
     queue2 = Queue()
     queue3 = Queue()
 
